@@ -6,6 +6,9 @@ from aiosqlite import connect, Row, Cursor
 from wcpan.drive.core.types import Node
 
 
+CURRENT_SCHEMA_VERSION = 4
+KEY_ROOT_ID = "root_id"
+KEY_CURSOR = "check_point"
 SQL_CREATE_TABLES = [
     """
     CREATE TABLE IF NOT EXISTS metadata (
@@ -78,13 +81,8 @@ SQL_CREATE_TABLES = [
     """,
     "CREATE INDEX IF NOT EXISTS ix_private_id ON private(id);",
     "CREATE INDEX IF NOT EXISTS ix_private_key ON private(key);",
-    "PRAGMA user_version = 5;",
+    f"PRAGMA user_version = {CURRENT_SCHEMA_VERSION};",
 ]
-
-
-CURRENT_SCHEMA_VERSION = 5
-KEY_ROOT_ID = "root_id"
-KEY_CURSOR = "check_point"
 
 
 type RegexpFunction = Callable[..., bool]
