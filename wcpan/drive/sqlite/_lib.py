@@ -183,6 +183,10 @@ async def inner_get_node_by_id(
     hash_ = "" if is_folder else rv["hash"]
     size = 0 if is_folder else rv["size"]
 
+    width = 0
+    height = 0
+    ms_duration = 0
+
     await query.execute(
         """
         SELECT width, height
@@ -193,8 +197,9 @@ async def inner_get_node_by_id(
     )
     rv = await query.fetchone()
     is_image = rv is not None
-    width = rv["width"] if rv else 0
-    height = rv["height"] if rv else 0
+    if rv:
+        width = rv["width"]
+        height = rv["height"]
 
     await query.execute(
         """
@@ -206,9 +211,10 @@ async def inner_get_node_by_id(
     )
     rv = await query.fetchone()
     is_video = rv is not None
-    width = rv["width"] if rv else 0
-    height = rv["height"] if rv else 0
-    ms_duration = rv["ms_duration"] if rv else 0
+    if rv:
+        width = rv["width"]
+        height = rv["height"]
+        ms_duration = rv["ms_duration"]
 
     await query.execute(
         """
