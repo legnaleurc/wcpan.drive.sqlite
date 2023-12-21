@@ -130,16 +130,16 @@ test = ["appdirs (==1.4.4)", "covdefaults (>=2.2.2)", "pytest (>=7.2.1)", "pytes
 
 [[package]]
 name = "wcpan-drive-core"
-version = "4.0.0"
+version = "4.1.0"
 description = "asynchronous generic cloud drive library"
 optional = false
 python-versions = ">=3.12,<4.0"
 files = [
-    {file = "wcpan_drive_core-4.0.0-py3-none-any.whl", hash = "sha256:d9dd171de038426aef06745093c9955b8c991f55578d66b5d567afaf35e3ce02"},
-    {file = "wcpan_drive_core-4.0.0.tar.gz", hash = "sha256:fb7ce8590e3c923c3147c86518d1bd0b6faa08309a6169c8820c1720e0669fda"},
+    {file = "wcpan_drive_core-4.1.0-py3-none-any.whl", hash = "sha256:fcddef9014c4dbddbfaf925c994989a6d4a524fd7a5670c1a92eb83934f4c837"},
+    {file = "wcpan_drive_core-4.1.0.tar.gz", hash = "sha256:982f1b83cdce287cd91dd186fae85f2db07dd86874d38eb831935c24c56d3566"},
 ]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "103cadff7d0ab8c6bb7e44821726d133acefdb5a87be8d03c098432893bbf022"
+content-hash = "0506f26e6c0187e8b9a9619aa5f81bbe8fbff5ae36fe4eb72da3d138853a512a"
