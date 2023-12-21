@@ -28,8 +28,8 @@ class GetCurrentCursorTestCase(IsolatedAsyncioTestCase):
         self.assertEqual(rv, "")
 
     async def testAfterInitialize(self):
-        async with read_write(self._dsn) as query:
-            await inner_set_metadata(query, KEY_CURSOR, "42")
+        with read_write(self._dsn) as query:
+            inner_set_metadata(query, KEY_CURSOR, "42")
 
         rv = await self._ss.get_current_cursor()
         self.assertEqual(rv, "42")
@@ -49,8 +49,8 @@ class RootTestCase(IsolatedAsyncioTestCase):
         node = _make_root("123")
         await self._ss.set_root(node)
 
-        async with read_only(self._dsn) as query:
-            rv = await inner_get_node_by_id(query, "123")
+        with read_only(self._dsn) as query:
+            rv = inner_get_node_by_id(query, "123")
 
         self.assertIsNotNone(rv)
 
@@ -92,11 +92,11 @@ class GetNodeTestCase(IsolatedAsyncioTestCase):
     async def testGetByPath(self):
         node = _make_root("1")
         await self._ss.set_root(node)
-        async with read_write(self._dsn) as query:
+        with read_write(self._dsn) as query:
             node = _make_dir("2", "1", "a")
-            await inner_insert_node(query, node)
+            inner_insert_node(query, node)
             node = _make_file("3", "2", "b")
-            await inner_insert_node(query, node)
+            inner_insert_node(query, node)
 
         rv = await self._ss.get_node_by_path(PurePath("/a/b"))
         self.assertEqual(rv, node)
@@ -118,11 +118,11 @@ class ResolvePathTestCase(IsolatedAsyncioTestCase):
     async def testGoodId(self):
         node = _make_root("1")
         await self._ss.set_root(node)
-        async with read_write(self._dsn) as query:
+        with read_write(self._dsn) as query:
             node = _make_dir("2", "1", "a")
-            await inner_insert_node(query, node)
+            inner_insert_node(query, node)
             node = _make_file("3", "2", "b")
-            await inner_insert_node(query, node)
+            inner_insert_node(query, node)
 
         rv = await self._ss.resolve_path_by_id("3")
         self.assertEqual(rv, PurePath("/a/b"))
@@ -137,11 +137,11 @@ class ResolvePathTestCase(IsolatedAsyncioTestCase):
     async def testBadId(self):
         node = _make_root("1")
         await self._ss.set_root(node)
-        async with read_write(self._dsn) as query:
+        with read_write(self._dsn) as query:
             node = _make_dir("2", "1", "a")
-            await inner_insert_node(query, node)
+            inner_insert_node(query, node)
             node = _make_file("3", "2", "b")
-            await inner_insert_node(query, node)
+            inner_insert_node(query, node)
 
         with self.assertRaises(NodeNotFoundError):
             await self._ss.resolve_path_by_id("4")
@@ -156,11 +156,11 @@ class GetChildrenTestCase(IsolatedAsyncioTestCase):
     async def testGetChild(self):
         root = _make_root("1")
         await self._ss.set_root(root)
-        async with read_write(self._dsn) as query:
+        with read_write(self._dsn) as query:
             a = _make_dir("2", "1", "a")
-            await inner_insert_node(query, a)
+            inner_insert_node(query, a)
             b = _make_file("3", "2", "b")
-            await inner_insert_node(query, b)
+            inner_insert_node(query, b)
 
         rv = await self._ss.get_child_by_name("b", "2")
         self.assertEqual(rv, b)
@@ -168,11 +168,11 @@ class GetChildrenTestCase(IsolatedAsyncioTestCase):
     async def testGetChildFromWrongParent(self):
         root = _make_root("1")
         await self._ss.set_root(root)
-        async with read_write(self._dsn) as query:
+        with read_write(self._dsn) as query:
             a = _make_dir("2", "1", "a")
-            await inner_insert_node(query, a)
+            inner_insert_node(query, a)
             b = _make_file("3", "2", "b")
-            await inner_insert_node(query, b)
+            inner_insert_node(query, b)
 
         with self.assertRaises(NodeNotFoundError):
             await self._ss.get_child_by_name("b", "1")
@@ -180,11 +180,11 @@ class GetChildrenTestCase(IsolatedAsyncioTestCase):
     async def testGetChildWithNoNode(self):
         root = _make_root("1")
         await self._ss.set_root(root)
-        async with read_write(self._dsn) as query:
+        with read_write(self._dsn) as query:
             a = _make_dir("2", "1", "a")
-            await inner_insert_node(query, a)
+            inner_insert_node(query, a)
             b = _make_file("3", "2", "b")
-            await inner_insert_node(query, b)
+            inner_insert_node(query, b)
 
         with self.assertRaises(NodeNotFoundError):
             await self._ss.get_child_by_name("b", "4")
@@ -192,13 +192,13 @@ class GetChildrenTestCase(IsolatedAsyncioTestCase):
     async def testGetChildren(self):
         root = _make_root("1")
         await self._ss.set_root(root)
-        async with read_write(self._dsn) as query:
+        with read_write(self._dsn) as query:
             a = _make_dir("2", "1", "a")
-            await inner_insert_node(query, a)
+            inner_insert_node(query, a)
             b = _make_file("3", "2", "b")
-            await inner_insert_node(query, b)
+            inner_insert_node(query, b)
             c = _make_file("4", "2", "c")
-            await inner_insert_node(query, c)
+            inner_insert_node(query, c)
 
         rv = await self._ss.get_children_by_id("2")
         rv = sorted(rv, key=lambda x: x.name)
@@ -229,13 +229,13 @@ class SearchNodesTestCase(IsolatedAsyncioTestCase):
     async def testGetTrashedNode(self):
         root = _make_root("1")
         await self._ss.set_root(root)
-        async with read_write(self._dsn) as query:
+        with read_write(self._dsn) as query:
             a = _make_dir("2", "1", "a")
             a = replace(a, is_trashed=True)
-            await inner_insert_node(query, a)
+            inner_insert_node(query, a)
             b = _make_file("3", "1", "b")
             b = replace(b, is_trashed=True)
-            await inner_insert_node(query, b)
+            inner_insert_node(query, b)
 
         rv = await self._ss.get_trashed_nodes()
         rv = sorted(rv, key=lambda x: x.name)
@@ -244,13 +244,13 @@ class SearchNodesTestCase(IsolatedAsyncioTestCase):
     async def testSearchByRegex(self):
         root = _make_root("1")
         await self._ss.set_root(root)
-        async with read_write(self._dsn) as query:
+        with read_write(self._dsn) as query:
             a = _make_dir("2", "1", "a")
-            await inner_insert_node(query, a)
+            inner_insert_node(query, a)
             b = _make_file("3", "1", "b")
-            await inner_insert_node(query, b)
+            inner_insert_node(query, b)
             c = _make_file("4", "1", "c")
-            await inner_insert_node(query, c)
+            inner_insert_node(query, c)
 
         rv = await self._ss.find_nodes_by_regex(r"a|b")
         rv = sorted(rv, key=lambda x: x.name)

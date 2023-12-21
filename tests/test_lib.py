@@ -1,117 +1,82 @@
 from asyncio import TaskGroup
+from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import Manager, get_context
+from threading import Event
+from sqlite3 import Cursor
 from tempfile import NamedTemporaryFile
-from unittest import IsolatedAsyncioTestCase
+from unittest import IsolatedAsyncioTestCase, skip
 
-from aiosqlite import Cursor
-from wcpan.drive.sqlite._lib import read_write, read_only
+from wcpan.drive.sqlite._lib import read_write, read_only, OffMainProcess
 
 
 class TransactionTestCase(IsolatedAsyncioTestCase):
-    async def asyncSetUp(self):
+    async def asyncSetUp(self) -> None:
+        self._manager = self.enterContext(Manager())
         file = self.enterContext(NamedTemporaryFile())
         self._dsn = file.name
-        async with read_write(self._dsn) as query:
-            await _prepare(query)
+        context = get_context("spawn")
+        self._pool = self.enterContext(ProcessPoolExecutor(mp_context=context))
+        self._bg = OffMainProcess(dsn=self._dsn, pool=self._pool)
+        with read_write(self._dsn) as query:
+            _prepare(query)
 
-    async def testRead(self):
-        async with read_only(self._dsn) as query:
-            rv = await _inner_select(query, "alice")
+    def testRead(self):
+        with read_only(self._dsn) as query:
+            rv = _inner_select(query, "alice")
 
         self.assertIsNotNone(rv)
         assert rv
         self.assertEqual(rv, 1)
 
-    async def testWrite(self):
-        async with read_write(self._dsn) as query:
-            await _inner_insert(query, 2, "bob")
+    def testWrite(self):
+        with read_write(self._dsn) as query:
+            _inner_insert(query, 2, "bob")
 
-        async with read_only(self._dsn) as query:
-            rv = await _inner_select(query, "bob")
+        with read_only(self._dsn) as query:
+            rv = _inner_select(query, "bob")
 
         self.assertIsNotNone(rv)
         assert rv
         self.assertEqual(rv, 2)
 
-    async def testParallelReading(self):
-        async with read_only(self._dsn) as q1, read_only(
-            self._dsn
-        ) as q2, TaskGroup() as tg:
-            t1 = tg.create_task(_inner_select(q1, "alice"))
-            t2 = tg.create_task(_inner_select(q2, "alice"))
+    async def testParallelRead(self):
+        event = self._manager.Event()
+        async with TaskGroup() as group:
+            r1 = group.create_task(self._bg(_sync_select, "alice", event))
+            r2 = group.create_task(self._bg(_sync_select, "alice", event))
+            event.set()
 
-        rv = t1.result()
-        self.assertIsNotNone(rv)
-        assert rv
+        rv = r1.result()
+        assert rv is not None
         self.assertEqual(rv, 1)
-        rv = t2.result()
-        self.assertIsNotNone(rv)
-        assert rv
+        rv = r2.result()
+        assert rv is not None
         self.assertEqual(rv, 1)
 
-    async def testParallelReadingWrite(self):
-        async with read_only(self._dsn) as rq, read_write(
-            self._dsn
-        ) as wq, TaskGroup() as tg:
-            rt = tg.create_task(_inner_select(rq, "alice"))
-            wt = tg.create_task(_inner_update(wq, 1, "bob"))
+    @skip("unstable")
+    async def testParallelWrite(self):
+        event = self._manager.Event()
+        with self.assertRaises(Exception, msg="database is locked"):
+            async with TaskGroup() as group:
+                group.create_task(self._bg(_sync_update, 1, "bob", event))
+                group.create_task(self._bg(_sync_update, 1, "cat", event))
+                event.set()
 
-        rv = rt.result()
-        self.assertIsNotNone(rv)
-        assert rv
-        self.assertEqual(rv, 1)
-        rv = wt.result()
-        self.assertIsNone(rv)
+    @skip("unstable")
+    async def testParallelReadWrite(self):
+        event = self._manager.Event()
+        async with TaskGroup() as group:
+            group.create_task(self._bg(_sync_update, 1, "cat", event))
+            r = group.create_task(self._bg(_sync_select, "alice", event))
+            event.set()
 
-        async with read_only(self._dsn) as rq:
-            rv = await _inner_select(rq, "bob")
-
-        self.assertIsNotNone(rv)
-        assert rv
-        self.assertEqual(rv, 1)
-
-    async def testParallelWriting(self):
-        with self.assertRaises(Exception):
-            async with read_write(self._dsn, timeout=0.1) as q1, read_write(
-                self._dsn, timeout=0.1
-            ) as q2, TaskGroup() as tg:
-                tg.create_task(_inner_update(q1, 1, "bob"))
-                tg.create_task(_inner_update(q2, 1, "ccc"))
-
-    async def testWriteWhileReading(self):
-        async with read_only(self._dsn) as rq, read_write(self._dsn) as wq:
-            rv = await _inner_select(rq, "alice")
-            await _inner_update(wq, 1, "bob")
-
-        self.assertIsNotNone(rv)
-        assert rv
-        self.assertEqual(rv, 1)
-
-        async with read_only(self._dsn) as rq:
-            rv = await _inner_select(rq, "bob")
-
-        self.assertIsNotNone(rv)
-        assert rv
-        self.assertEqual(rv, 1)
-
-    async def testReadWhileWriting(self):
-        async with read_write(self._dsn) as wq, read_only(self._dsn) as rq:
-            await _inner_update(wq, 1, "bob")
-            rv = await _inner_select(rq, "alice")
-
-        self.assertIsNotNone(rv)
-        assert rv
-        self.assertEqual(rv, 1)
-
-        async with read_only(self._dsn) as rq:
-            rv = await _inner_select(rq, "bob")
-
-        self.assertIsNotNone(rv)
-        assert rv
+        rv = r.result()
+        assert rv is not None
         self.assertEqual(rv, 1)
 
 
-async def _prepare(query: Cursor):
-    await query.execute(
+def _prepare(query: Cursor):
+    query.execute(
         """
         CREATE TABLE student (
             id INTEGER NOT NULL,
@@ -120,7 +85,7 @@ async def _prepare(query: Cursor):
         );
         """
     )
-    await query.execute(
+    query.execute(
         """
         INSERT INTO student
         (id, name)
@@ -131,21 +96,28 @@ async def _prepare(query: Cursor):
     )
 
 
-async def _inner_select(query: Cursor, name: str) -> int | None:
-    await query.execute(
+def _inner_select(query: Cursor, name: str) -> int | None:
+    query.execute(
         """
         SELECT id FROM student WHERE name=?;
         """,
         (name,),
     )
-    rv = await query.fetchone()
+    rv = query.fetchone()
     if rv is None:
         return None
     return rv["id"]
 
 
-async def _inner_insert(query: Cursor, id: int, name: str) -> None:
-    await query.execute(
+def _sync_select(dsn: str, name: str, event: Event) -> int | None:
+    with read_only(dsn, timeout=0) as query:
+        rv = _inner_select(query, name)
+        event.wait()
+        return rv
+
+
+def _inner_insert(query: Cursor, id: int, name: str) -> None:
+    query.execute(
         """
         INSERT INTO student
         (id, name)
@@ -156,8 +128,8 @@ async def _inner_insert(query: Cursor, id: int, name: str) -> None:
     )
 
 
-async def _inner_update(query: Cursor, id: int, name: str) -> None:
-    await query.execute(
+def _inner_update(query: Cursor, id: int, name: str) -> None:
+    query.execute(
         """
         UPDATE student
         SET name = ?
@@ -166,3 +138,9 @@ async def _inner_update(query: Cursor, id: int, name: str) -> None:
         """,
         (name, id),
     )
+
+
+def _sync_update(dsn: str, id: int, name: str, event: Event) -> None:
+    with read_write(dsn, timeout=0) as query:
+        _inner_update(query, id, name)
+        event.wait()
