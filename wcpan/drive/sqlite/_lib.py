@@ -98,7 +98,7 @@ async def connect_(dsn: str, *, timeout: float | None, regexp: RegexpFunction | 
         # await db.execute("PRAGMA foreign_keys = 1;")
         if regexp:
             # FIXME type error from aiosqlite
-            await db.create_function("REGEXP", 2, regexp)  # type: ignore
+            await db.create_function("REGEXP", 2, regexp, deterministic=True)  # type: ignore
         yield db
 
 

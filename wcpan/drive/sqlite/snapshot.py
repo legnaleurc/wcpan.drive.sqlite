@@ -252,9 +252,9 @@ async def _apply_changes(
 
 
 async def _find_nodes_by_regex(dsn: str, pattern: str) -> list[Node]:
-    fn = partial(_sqlite3_regexp, re.compile(pattern, re.I))
+    fn = partial(_sqlite3_regexp, pattern=re.compile(pattern, re.I))
     async with read_only(dsn, regexp=fn) as query:
-        await query.execute("SELECT id FROM nodes WHERE name REGEXP ?;", (pattern,))
+        await query.execute("SELECT id FROM nodes WHERE name REGEXP ?;", ('_',))
         rv = await query.fetchall()
         rv = (await inner_get_node_by_id(query, _["id"]) for _ in rv)
         rv = [_ async for _ in rv if _]
@@ -326,9 +326,10 @@ async def _inner_delete_node_by_id(query: Cursor, node_id: str) -> None:
 
 
 def _sqlite3_regexp(
-    pattern: Pattern[str],
     _: str,
     cell: str | None,
+    *,
+    pattern: Pattern[str],
 ) -> bool:
     if cell is None:
         # root node
