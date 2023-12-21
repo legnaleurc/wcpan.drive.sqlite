@@ -6,7 +6,7 @@ from unittest import IsolatedAsyncioTestCase
 
 from wcpan.drive.core.exceptions import NodeNotFoundError
 from wcpan.drive.core.types import Node, ChangeAction
-from wcpan.drive.sqlite.snapshot import create_service
+from wcpan.drive.sqlite._service import create_service
 from wcpan.drive.sqlite._lib import (
     inner_get_node_by_id,
     inner_insert_node,
