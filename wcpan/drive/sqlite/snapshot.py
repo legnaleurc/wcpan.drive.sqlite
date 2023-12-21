@@ -1,18 +1,13 @@
 from contextlib import asynccontextmanager
 from functools import partial
 from pathlib import PurePath
-from typing import Pattern, TypeGuard, cast
+from typing import Pattern, cast
 import re
 
 from aiosqlite import Cursor
 from wcpan.drive.core.exceptions import DriveError, NodeNotFoundError
-from wcpan.drive.core.types import (
-    ChangeAction,
-    Node,
-    RemoveAction,
-    SnapshotService,
-    UpdateAction,
-)
+from wcpan.drive.core.types import ChangeAction, Node, SnapshotService
+from wcpan.drive.core.lib import dispatch_change
 
 from ._lib import (
     CURRENT_SCHEMA_VERSION,
@@ -241,14 +236,6 @@ async def _get_trashed_nodes(dsn: str) -> list[Node]:
     return nodes
 
 
-def _is_remove(change: ChangeAction) -> TypeGuard[RemoveAction]:
-    return change[0]
-
-
-def _is_update(change: ChangeAction) -> TypeGuard[UpdateAction]:
-    return not change[0]
-
-
 async def _apply_changes(
     dsn: str,
     changes: list[ChangeAction],
@@ -256,12 +243,11 @@ async def _apply_changes(
 ) -> None:
     async with read_write(dsn) as query:
         for change in changes:
-            if _is_remove(change):
-                await _inner_delete_node_by_id(query, change[1])
-                continue
-            if _is_update(change):
-                await inner_insert_node(query, change[1])
-                continue
+            await dispatch_change(
+                change,
+                on_remove=lambda _: _inner_delete_node_by_id(query, _),
+                on_update=lambda _: inner_insert_node(query, _),
+            )
         await inner_set_metadata(query, KEY_CURSOR, cursor)
 
 
