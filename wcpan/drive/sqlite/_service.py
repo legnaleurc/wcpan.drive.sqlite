@@ -5,7 +5,8 @@ from pathlib import PurePath
 from wcpan.drive.core.exceptions import NodeNotFoundError
 from wcpan.drive.core.types import ChangeAction, Node, SnapshotService
 
-from ._lib import (
+from ._lib import OffMainProcess
+from ._outer import (
     initialize,
     get_node_by_path,
     resolve_path_by_id,
@@ -18,7 +19,6 @@ from ._lib import (
     get_root,
     set_root,
     get_node_by_id,
-    OffMainProcess,
 )
 
 

@@ -7,13 +7,12 @@ from unittest import IsolatedAsyncioTestCase
 from wcpan.drive.core.exceptions import NodeNotFoundError
 from wcpan.drive.core.types import Node, ChangeAction
 from wcpan.drive.sqlite._service import create_service
-from wcpan.drive.sqlite._lib import (
+from wcpan.drive.sqlite._lib import read_only, read_write
+from wcpan.drive.sqlite._outer import (
     inner_get_node_by_id,
     inner_insert_node,
     inner_set_metadata,
     KEY_CURSOR,
-    read_only,
-    read_write,
 )
 
 
@@ -282,7 +281,7 @@ class ApplyChangesTestCase(IsolatedAsyncioTestCase):
 
 
 def _make_root(id: str) -> Node:
-    now = datetime.now(UTC).replace(microsecond=0)
+    now = datetime.now(UTC)
     return Node(
         id=id,
         parent_id=None,
@@ -304,7 +303,7 @@ def _make_root(id: str) -> Node:
 
 
 def _make_dir(id: str, parent_id: str, name: str) -> Node:
-    now = datetime.now(UTC).replace(microsecond=0)
+    now = datetime.now(UTC)
     return Node(
         id=id,
         parent_id=parent_id,
@@ -326,7 +325,7 @@ def _make_dir(id: str, parent_id: str, name: str) -> Node:
 
 
 def _make_file(id: str, parent_id: str, name: str) -> Node:
-    now = datetime.now(UTC).replace(microsecond=0)
+    now = datetime.now(UTC)
     return Node(
         id=id,
         parent_id=parent_id,
