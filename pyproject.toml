@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "wcpan-drive-sqlite"
-version = "1.0.4"
+version = "2.0.0"
 description = "sqlite3 snapshot service for wcpan.drive"
 authors = ["Wei-Cheng Pan <legnaleurc@gmail.com>"]
 license = "MIT"
