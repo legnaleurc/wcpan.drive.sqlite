@@ -189,16 +189,11 @@ def get_uploaded_size(dsn: str, begin: datetime, end: datetime) -> int:
 
 
 def find_orphan_nodes(dsn: str) -> list[Node]:
+    from ._sql import SQL_SELECT_ORPHAN_NODES
+
     with read_only(dsn) as query:
-        query.execute(
-            "SELECT nodes.id AS id "
-            "FROM parents "
-            "LEFT OUTER JOIN nodes ON parents.id = nodes.id "
-            "WHERE parents.parent_id IS NULL;"
-        )
-        rv = query.fetchall()
-        raw_query = (inner_get_node_by_id(query, _["id"]) for _ in rv)
-        nodes = [_ for _ in raw_query if _]
+        query.execute(SQL_SELECT_ORPHAN_NODES)
+        nodes = [node_from_query(_) for _ in query]
     return nodes
 
 

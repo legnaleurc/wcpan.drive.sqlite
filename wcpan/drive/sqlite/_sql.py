@@ -113,10 +113,11 @@ LEFT JOIN images ON nodes.id = images.id
 LEFT JOIN audios ON nodes.id = audios.id
 LEFT JOIN extras ON nodes.id = extras.id
 """
-SQL_SELECT_NODE_BY_ID = SQL_JOIN_TABLES + "WHERE nodes.id=?;"
+SQL_SELECT_NODE_BY_ID = SQL_JOIN_TABLES + "WHERE nodes.id = ?;"
 SQL_SELECT_CHILD_BY_NAME = (
-    SQL_JOIN_TABLES + "WHERE parents.parent_id=? AND nodes.name=?;"
+    SQL_JOIN_TABLES + "WHERE parents.parent_id = ? AND nodes.name = ?;"
 )
-SQL_SELECT_CHILDREN_BY_ID = SQL_JOIN_TABLES + "WHERE parents.parent_id=?;"
-SQL_SELECT_TRASHED_NODES = SQL_JOIN_TABLES + "WHERE nodes.trashed=?;"
-SQL_SELECT_NODES_BY_REGEX = SQL_JOIN_TABLES + "WHERE name REGEXP '';"
+SQL_SELECT_CHILDREN_BY_ID = SQL_JOIN_TABLES + "WHERE parents.parent_id = ?;"
+SQL_SELECT_TRASHED_NODES = SQL_JOIN_TABLES + "WHERE nodes.trashed = ?;"
+SQL_SELECT_NODES_BY_REGEX = SQL_JOIN_TABLES + "WHERE nodes.name REGEXP '';"
+SQL_SELECT_ORPHAN_NODES = SQL_JOIN_TABLES + "WHERE parents.parent_id IS NULL;;"
