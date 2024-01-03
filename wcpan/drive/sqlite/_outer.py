@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import PurePath
 from typing import cast
 
@@ -168,14 +169,16 @@ def get_node_by_id(dsn: str, node_id: str, /) -> Node | None:
         return inner_get_node_by_id(query, node_id)
 
 
-def get_uploaded_size(dsn: str, begin: int, end: int) -> int:
+def get_uploaded_size(dsn: str, begin: datetime, end: datetime) -> int:
+    b = int(begin.timestamp() * 1_000_000)
+    e = int(end.timestamp() * 1_000_000)
     with read_only(dsn) as query:
         query.execute(
             "SELECT SUM(size) AS sum "
             "FROM files "
             "INNER JOIN nodes ON files.id = nodes.id "
             "WHERE created >= ? AND created < ?;",
-            (begin, end),
+            (b, e),
         )
         rv = query.fetchone()
         if not rv:
