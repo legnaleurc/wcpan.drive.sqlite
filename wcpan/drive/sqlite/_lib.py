@@ -43,17 +43,19 @@ def connect_(dsn: str, *, timeout: float | None, regexp: RegexpFunction | None):
 def read_only(
     dsn: str, *, timeout: float | None = None, regexp: RegexpFunction | None = None
 ):
-    with connect_(dsn, timeout=timeout, regexp=regexp) as db, closing(
-        db.cursor()
-    ) as cursor:
+    with (
+        connect_(dsn, timeout=timeout, regexp=regexp) as db,
+        closing(db.cursor()) as cursor,
+    ):
         yield cursor
 
 
 @contextmanager
 def read_write(dsn: str, *, timeout: float | None = None):
-    with connect_(dsn, timeout=timeout, regexp=None) as db, closing(
-        db.cursor()
-    ) as cursor:
+    with (
+        connect_(dsn, timeout=timeout, regexp=None) as db,
+        closing(db.cursor()) as cursor,
+    ):
         try:
             yield cursor
             if db.in_transaction:
