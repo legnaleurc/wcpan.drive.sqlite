@@ -7,15 +7,10 @@ readme = "README.md"
 authors = [
     {name = "Wei-Cheng Pan", email = "legnaleurc@gmail.com"}
 ]
-dynamic = ["classifiers", "dependencies", "requires-python"]
-
-[project.urls]
-source = "https://github.com/legnaleurc/wcpan.drive.sqlite"
-
-[tool.poetry]
-requires-poetry = "^2.1"
-package-mode = true
-packages = [{include = "wcpan"}]
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "wcpan-drive-core>=4.1.0,<5.0.0",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -24,13 +19,17 @@ classifiers = [
     "Typing :: Typed",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-wcpan-drive-core = "^4.1.0"
-
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.14.0"
+[project.urls]
+source = "https://github.com/legnaleurc/wcpan.drive.sqlite"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["wcpan"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.0,<1.0.0",
+]
