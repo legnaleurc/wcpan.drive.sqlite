@@ -12,12 +12,12 @@ ENV_LOCK := $(ENV_DIR)/pyvenv.cfg
 all: venv
 
 format: venv
-	$(RUFF) check --fix tests wcpan
-	$(RUFF) format tests wcpan
+	$(RUFF) check --fix tests src/wcpan
+	$(RUFF) format tests src/wcpan
 
 lint: venv
-	$(RUFF) check tests wcpan
-	$(RUFF) format --check tests wcpan
+	$(RUFF) check tests src/wcpan
+	$(RUFF) format --check tests src/wcpan
 
 clean:
 	$(RM) ./dist ./build ./*.egg-info
@@ -26,7 +26,7 @@ purge: clean
 	$(RM) $(ENV_DIR)
 
 test: venv
-	$(PYTHON) -m compileall wcpan
+	$(PYTHON) -m compileall src/wcpan
 	$(PYTHON) -m unittest
 
 build: clean venv
