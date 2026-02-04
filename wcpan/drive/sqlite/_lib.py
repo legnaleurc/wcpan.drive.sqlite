@@ -1,8 +1,8 @@
 from collections.abc import Callable
 from concurrent.futures import Executor
-from contextlib import contextmanager, closing
-from sqlite3 import connect, Row
-from typing import Pattern, Concatenate
+from contextlib import closing, contextmanager
+from sqlite3 import Row, connect
+from typing import Concatenate, Pattern
 
 
 type RegexpFunction = Callable[..., bool]
@@ -13,9 +13,7 @@ class OffMainProcess:
         self._dsn = dsn
         self._pool = pool
 
-    async def __call__[
-        **A, R
-    ](
+    async def __call__[**A, R](
         self, fn: Callable[Concatenate[str, A], R], *args: A.args, **kwargs: A.kwargs
     ) -> R:
         from asyncio import get_running_loop

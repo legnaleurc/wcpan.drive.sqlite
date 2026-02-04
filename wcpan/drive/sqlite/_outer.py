@@ -3,10 +3,8 @@ from pathlib import PurePath
 from typing import cast
 
 from wcpan.drive.core.lib import dispatch_change
-from wcpan.drive.core.types import Node, ChangeAction
+from wcpan.drive.core.types import ChangeAction, Node
 
-from .exceptions import SqliteSnapshotError
-from ._lib import read_only, read_write, sqlite3_regexp
 from ._inner import (
     inner_delete_node_by_id,
     inner_get_metadata,
@@ -15,6 +13,8 @@ from ._inner import (
     inner_set_metadata,
     node_from_query,
 )
+from ._lib import read_only, read_write, sqlite3_regexp
+from .exceptions import SqliteSnapshotError
 
 
 KEY_ROOT_ID = "root_id"
@@ -134,7 +134,7 @@ def apply_changes(dsn: str, changes: list[ChangeAction], cursor: str, /) -> None
 
 def find_nodes_by_regex(dsn: str, pattern: str, /) -> list[Node]:
     from functools import partial
-    from re import compile, I
+    from re import I, compile
 
     from ._sql import SQL_SELECT_NODES_BY_REGEX
 

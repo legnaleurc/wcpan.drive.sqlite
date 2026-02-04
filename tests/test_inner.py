@@ -1,7 +1,7 @@
 from unittest import TestCase
 
+from wcpan.drive.sqlite._inner import inner_get_node_by_id, inner_insert_node
 from wcpan.drive.sqlite._lib import read_only, read_write
-from wcpan.drive.sqlite._inner import inner_insert_node, inner_get_node_by_id
 
 from ._lib import create_sandbox, random_dir, random_file, random_image, random_video
 

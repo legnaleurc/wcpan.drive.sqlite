@@ -1,12 +1,12 @@
 from asyncio import TaskGroup
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Manager, get_context
-from threading import Event
 from sqlite3 import Cursor
 from tempfile import NamedTemporaryFile
+from threading import Event
 from unittest import IsolatedAsyncioTestCase, skip
 
-from wcpan.drive.sqlite._lib import read_write, read_only, OffMainProcess
+from wcpan.drive.sqlite._lib import OffMainProcess, read_only, read_write
 
 
 class TransactionTestCase(IsolatedAsyncioTestCase):

@@ -1,19 +1,20 @@
 from dataclasses import replace
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import PurePath
 from tempfile import NamedTemporaryFile
 from unittest import IsolatedAsyncioTestCase
 
 from wcpan.drive.core.exceptions import NodeNotFoundError
-from wcpan.drive.core.types import Node, ChangeAction
-from wcpan.drive.sqlite._service import create_service
+from wcpan.drive.core.types import ChangeAction, Node
+
 from wcpan.drive.sqlite._lib import read_only, read_write
 from wcpan.drive.sqlite._outer import (
+    KEY_CURSOR,
     inner_get_node_by_id,
     inner_insert_node,
     inner_set_metadata,
-    KEY_CURSOR,
 )
+from wcpan.drive.sqlite._service import create_service
 
 
 class GetCurrentCursorTestCase(IsolatedAsyncioTestCase):
