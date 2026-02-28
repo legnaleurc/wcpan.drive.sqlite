@@ -36,7 +36,7 @@ class SqliteSnapshotService(SnapshotService):
 
     @property
     def api_version(self) -> int:
-        return 4
+        return 5
 
     async def get_current_cursor(self) -> str:
         cursor = await self._bg(get_current_cursor)
