@@ -9,7 +9,7 @@ authors = [
 ]
 requires-python = ">=3.12,<4.0"
 dependencies = [
-    "wcpan-drive-core>=4.1.0,<5.0.0",
+    "wcpan-drive-core>=5.0.1,<6.0.0",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
