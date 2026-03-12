@@ -29,7 +29,7 @@ python = "^3.12"
 wcpan-drive-core = "^4.1.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.0.0"
+black = "^26.3.1"
 
 [build-system]
 requires = ["poetry-core"]
