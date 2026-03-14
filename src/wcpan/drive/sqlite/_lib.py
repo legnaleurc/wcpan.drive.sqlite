@@ -28,7 +28,7 @@ class OffMainProcess:
 def connect_(dsn: str, *, timeout: float | None, regexp: RegexpFunction | None):
     if timeout is None:
         timeout = 5.0
-    with connect(dsn, timeout=timeout) as db:
+    with closing(connect(dsn, timeout=timeout)) as db:
         db.row_factory = Row
         # FIXME error in the real world
         # await db.execute("PRAGMA foreign_keys = 1;")
