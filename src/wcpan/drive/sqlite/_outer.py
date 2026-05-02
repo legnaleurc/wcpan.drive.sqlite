@@ -177,7 +177,7 @@ def get_uploaded_size(dsn: str, begin: datetime, end: datetime) -> int:
             "SELECT SUM(size) AS sum "
             "FROM files "
             "INNER JOIN nodes ON files.id = nodes.id "
-            "WHERE created >= ? AND created < ?;",
+            "WHERE created_time >= ? AND created_time < ?;",
             (b, e),
         )
         rv = query.fetchone()

@@ -5,8 +5,9 @@ class JoinedDict(TypedDict):
     id: str
     name: str
     trashed: Literal[0, 1]
-    created: int
-    updated: int
+    created_time: int
+    modified_time: int
+    changed_time: int
     parent_id: str | None
     size: int | None
     hash: str | None
@@ -17,7 +18,7 @@ class JoinedDict(TypedDict):
     extra: str | None
 
 
-CURRENT_SCHEMA_VERSION = 5
+CURRENT_SCHEMA_VERSION = 6
 
 SQL_CREATE_TABLES = [
     """
@@ -32,15 +33,17 @@ SQL_CREATE_TABLES = [
         id TEXT NOT NULL,
         name TEXT,
         trashed BOOLEAN,
-        created INTEGER,
-        updated INTEGER,
+        created_time INTEGER,
+        modified_time INTEGER,
+        changed_time INTEGER,
         PRIMARY KEY (id)
     );
     """,
     "CREATE INDEX IF NOT EXISTS ix_nodes_names ON nodes(name);",
     "CREATE INDEX IF NOT EXISTS ix_nodes_trashed ON nodes(trashed);",
-    "CREATE INDEX IF NOT EXISTS ix_nodes_created ON nodes(created);",
-    "CREATE INDEX IF NOT EXISTS ix_nodes_updated ON nodes(updated);",
+    "CREATE INDEX IF NOT EXISTS ix_nodes_created_time ON nodes(created_time);",
+    "CREATE INDEX IF NOT EXISTS ix_nodes_modified_time ON nodes(modified_time);",
+    "CREATE INDEX IF NOT EXISTS ix_nodes_changed_time ON nodes(changed_time);",
     """
     CREATE TABLE IF NOT EXISTS files (
         id TEXT NOT NULL,
@@ -96,8 +99,9 @@ SELECT
     nodes.id AS id,
     nodes.name AS name,
     nodes.trashed AS trashed,
-    nodes.created AS created,
-    nodes.updated AS updated,
+    nodes.created_time AS created_time,
+    nodes.modified_time AS modified_time,
+    nodes.changed_time AS changed_time,
     parents.parent_id AS parent_id,
     files.mime_type AS mime_type,
     files.hash AS hash,

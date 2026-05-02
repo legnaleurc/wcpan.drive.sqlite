@@ -33,15 +33,16 @@ def inner_insert_node(query: Cursor, node: Node) -> None:
     # add this node
     query.execute(
         "INSERT OR REPLACE INTO nodes "
-        "(id, name, trashed, created, updated) "
+        "(id, name, trashed, created_time, modified_time, changed_time) "
         "VALUES "
-        "(?, ?, ?, ?, ?);",
+        "(?, ?, ?, ?, ?, ?);",
         (
             node.id,
             node.name,
             node.is_trashed,
-            int(node.ctime.timestamp() * 1_000_000),
-            int(node.mtime.timestamp() * 1_000_000),
+            int(node.created_time.timestamp() * 1_000_000),
+            int(node.modified_time.timestamp() * 1_000_000),
+            int(node.changed_time.timestamp() * 1_000_000),
         ),
     )
 
@@ -124,8 +125,9 @@ def node_from_query(row: JoinedDict) -> Node:
         id=row["id"],
         name=row["name"],
         is_trashed=bool(row["trashed"]),
-        ctime=datetime.fromtimestamp(row["created"] / 1_000_000, UTC),
-        mtime=datetime.fromtimestamp(row["updated"] / 1_000_000, UTC),
+        created_time=datetime.fromtimestamp(row["created_time"] / 1_000_000, UTC),
+        modified_time=datetime.fromtimestamp(row["modified_time"] / 1_000_000, UTC),
+        changed_time=datetime.fromtimestamp(row["changed_time"] / 1_000_000, UTC),
         parent_id=row["parent_id"],
         mime_type=mime_type or "",
         hash=hash_ or "",
